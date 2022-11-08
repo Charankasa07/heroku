@@ -16,6 +16,7 @@ const loginvalidation = (data)=>{
     const check = joi.object({
         email : joi.string().required().email(),
         password : joi.string().required(),
+        admin_id:joi.string()
         //role:joi.string().required()
     })
     return check.validate(data)
