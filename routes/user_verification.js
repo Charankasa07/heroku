@@ -8,7 +8,7 @@ module.exports = function (req,res,next){
     try{
 
         const verified = jwt.verify(token,process.env.token_admin)
-        req.user= verified
+        req.user=verified
         next()
     }
     catch(err){
