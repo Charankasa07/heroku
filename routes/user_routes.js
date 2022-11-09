@@ -91,7 +91,7 @@ router.get('/reset-password/:email/:token',async (req,res)=>{
         const secret = process.env.token_customer + user.password
         const verified= jwt.verify(token,secret)
         if(verified){
-            res.send(main_path+'/reset-password.html')
+            res.sendFile(main_path+'/reset-password.html')
         }
 
     } catch (error) {
