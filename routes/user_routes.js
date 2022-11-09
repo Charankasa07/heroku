@@ -8,6 +8,7 @@ const sendmail= require('../node_mailer')
 const {registervalidation,loginvalidation} = require('./validation')
 const e = require('express')
 const uri = 'https://charan-heroku.herokuapp.com/user'
+const main_path='/Users/charan/Desktop/Vegetable Project'
 
 router.post('/register', async (req,res)=>{
      
@@ -90,11 +91,33 @@ router.get('/reset-password/:email/:token',async (req,res)=>{
         const secret = process.env.token_customer + user.password
         const verified= jwt.verify(token,secret)
         if(verified){
-            res.sendFile('/Users/charan/Desktop/Vegetable Project/reset-password.html')
+            res.sendFile(path.join(main_path+'/reset-password.html'))
         }
 
     } catch (error) {
         res.send(error.message)
+    }
+})
+
+router.post('/reset-password/:email/:token',async (req,res)=>{
+        const password = req.body.password
+        const password1= req.body.password1
+        const token = req.params.token
+        if(password==password1){
+        const user = await Schema.findOne({email:req.params.email})
+        if(!user) return res.status(400).send("User not registered")
+
+        const secret= process.env.token_customer + user.password
+        const verified= jwt.verify(token,secret)
+        if(verified){
+            user.password=req.body.password
+            await user.save()
+        }
+
+        res.send("Password reset successfully")
+    }
+    else{
+        res.send("Passwords didnt matched")
     }
 })
 module.exports = router
