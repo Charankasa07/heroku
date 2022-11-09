@@ -2,9 +2,12 @@ const router = require('express').Router()
 const joi = require('joi')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const path = require('path')
 const Schema = require('../models/u_schema')
+const sendmail= require('../node_mailer')
 const {registervalidation,loginvalidation} = require('./validation')
 const e = require('express')
+const uri = 'https://charan-heroku.herokuapp.com/user'
 
 router.post('/register', async (req,res)=>{
      
@@ -63,4 +66,35 @@ router.get('/get',async (req,res)=>{
     }
 })
 
+router.post('/reset-password',async (req,res)=>{
+    const user = await Schema.findOne({email:req.body.email})
+    if(!user) return res.status(400).send("User not registered")
+
+    const secret = process.env.token_customer + user.password
+    const token = await jwt.sign({email:user.email},secret,{expiresIn:'10m'})
+    const URI = `${uri}/reset-password/${user.email}/${token}`
+    const html = `<h4>Reset password</h4><p>Valid for 10 mins</p><a href=${URI}>Click here</a>`
+    await sendmail(user.email,"Password Reset",html)
+    res.send("Password reset mail sent to your email account")
+})
+
+router.get('/reset-password/:email/:token',async (req,res)=>{
+
+    const email = req.params.email
+    const token = req.params.token
+
+    try {
+        const user = await Schema.findOne({email:req.params.email})
+        if(!user) return res.status(400).send("User not registered")
+
+        const secret = process.env.token_customer + user.password
+        const verified= jwt.verify(token,secret)
+        if(verified){
+            res.sendFile('/Users/charan/Desktop/Vegetable Project/reset-password.html')
+        }
+
+    } catch (error) {
+        res.send(error.message)
+    }
+})
 module.exports = router
